@@ -1,0 +1,77 @@
+﻿body {
+	padding: 0;
+    font-family: Consolas, Helvetica, Arial, sans-serif;
+    font-size: 16px;
+}
+a {
+    color: #00B7FF;
+}
+.wrap{
+	
+    margin: 20px 0 0 50px;
+}
+.info{
+	font-size: 12px;
+	color: grey;
+}
+
+.msgDot {
+	height: 10px;
+	width: 10px;
+	border: 1px solid black;
+	border-radius: 10px;
+	display: inline-block;
+	margin: 0 5px 0 5px;
+}
+.fullDot{
+	background: black;
+	.msgDot;
+}
+.emptyDot{
+	background: white;
+	.msgDot;
+}
+
+.btn{
+	width: 100px;
+	height:25px;
+}
+#zgaduj{
+	.btn;
+}
+.gameInput{
+	width:50px;
+	text-align: right;
+	padding-right: 2px;
+	margin: 0 0 5px 0;
+}
+
+#rate{
+	height: 20px;
+	margin: 10px;
+}
+
+#gameTable{
+	border-collapse:collapse;
+}
+
+#gameTable td{
+	padding-left:5px;
+	padding-right:5px;
+}
+#gameTable th{
+	padding-top: 10px;
+	text-align: center;
+}
+
+#gameTableBody td{
+	padding-top: 5px;
+	padding-bottom: 5px;
+	text-align: center;
+}
+#gameTableBody tr{
+	border-top:1px solid #919191;
+}
+#hint{
+	text-align: center;
+}
