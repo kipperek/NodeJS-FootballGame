@@ -1,5 +1,9 @@
+"use strict";
 $(document).ready(function(){
-function generateLine(startPoint, endPoint, color){
+
+//-------Rysowanie Gry--------------------------------------------------
+	//Sprawdzamy jakie linie rysowac w polu
+	function generateLine(startPoint, endPoint, color){
 			var start =".png";
 			var end =".png";
 
@@ -39,11 +43,14 @@ function generateLine(startPoint, endPoint, color){
 			}
 		}
 
-
+		//Rysowanie prawidłowe----------------------
+		//------------------------------------------
 		function drawField(data){
 			var el = $("#gameField");
 			var fieldY = 21;
 			var fieldX = 15;
+			var hoverCurrent = "none";
+			var hoverTarget = "none";
 
 			//----Rysowanie pola-------------------
 			var fieldHTML= "";
@@ -72,14 +79,24 @@ function generateLine(startPoint, endPoint, color){
 				var graph = generateLine({x: data.current.x, y: data.current.y},{x: $(this).attr("data-x"), y: $(this).attr("data-y")},"b");
 				var start = "url("+graph.first+")";
 				var end = "url("+graph.second+")";
+
+				hoverTarget = $(this).css('background-image');
+				hoverCurrent = $(attrString(data.current.x,data.current.y)).css('background-image');
 				
+				if(hoverCurrent != "none")
+					start = hoverCurrent + ", " + start;
+
+				if(hoverTarget != "none")
+					end = hoverTarget + ", " + end;
+
+
 				$(this).css('background-image',end);
 				$(attrString(data.current.x,data.current.y)).css('background-image',start);
 			}
 
 			var removeLineHover = function(e){
-				$(this).css('background-image','none');
-				$(attrString(data.current.x,data.current.y)).css('background-image','none');
+				$(this).css('background-image',hoverTarget);
+				$(attrString(data.current.x,data.current.y)).css('background-image',hoverCurrent);
 			}
 
 			var lineClick = function(e){
@@ -92,7 +109,7 @@ function generateLine(startPoint, endPoint, color){
 				};
 				data.current = newEnd;
 				data.path.push(newLine);
-				drawField(data);
+				socket.emit('message', JSON.stringify(data));
 			}
 
 			for(var i= -1; i<= 1; i++)
@@ -126,39 +143,27 @@ function generateLine(startPoint, endPoint, color){
 				$(attrString(line.end.x,line.end.y) + " div").addClass('flagged');
 			});
 		}
-		
+		//----------------------------------------------------------------------------
 
-			//MOKOWANIE
-			var data1 = {
-				moves:
-				[{
-					x: 8,
-					y: 11
-				},
-				{
-					x: 7,
-					y: 11
-				}],
+		//drawField(data1);
 
-				current: {x: 7, y:10},
-				path: []
-				/*[{
-					color: "b",
-					start: {x: 1, y:1},
-					end: {x:1,y:2}
-				},
-				{
-					color: "b",
-					start: {x: 1, y:2},
-					end: {x:2,y:2}
-				},
-				{
-					color: "b",
-					start: {x: 2, y:2},
-					end: {x:3,y:3}
-				}]*/
-			}
-			//-------------------------------------
+		//--------------------------------Start---------------------------------------
+		var socket;
+		$('#start').click(function(e){
+			socket = io.connect('http://' + location.host);
+			socket.on('connect', function () {
+	            console.log('Nawiązano połączenie przez Socket.io');
+	            $('#start').attr('disabled','disabled');
+	            socket.emit('message', "start");
+        	});
+        	socket.on('disconnect', function () {
+           		$('#start').removeAttr('disabled');
+        	});
+        	//otrzymalem wiadomość
+        	socket.on("echo", function (data) {
+        		var dane = JSON.parse(data);
+        		drawField(dane);
+        	});
 
-		drawField(data1);
+		});
 });

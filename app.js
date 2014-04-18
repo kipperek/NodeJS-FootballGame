@@ -3,8 +3,12 @@ var routes = require('./routes');
 var http = require('http');
 var path = require('path');
 var less = require('less-middleware');
-
+///socket io i server create
 var app = express();
+http = http.createServer(app);
+var socketio = require("socket.io");
+var io = socketio.listen(http);
+//
 
 app.configure(function () {
     app.set('port', process.env.PORT || 3000);
@@ -36,9 +40,12 @@ app.configure('development', function () {
     app.use(express.logger('dev'));
     app.use(express.errorHandler());
 });
-
+//Routes
 app.get('/', routes.index);
 
-http.createServer(app).listen(app.get('port'), function () {
+//server start
+http.listen(app.get('port'), function () {
     console.log("Serwer nasłuchuje na porcie " + app.get('port'));
 });
+
+var s = require("./models/sockets.js").setSocket(io);;
