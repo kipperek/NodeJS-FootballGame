@@ -76,7 +76,7 @@ $(document).ready(function(){
 			}
 
 			var addLineHover = function(e){
-				var graph = generateLine({x: data.current.x, y: data.current.y},{x: $(this).attr("data-x"), y: $(this).attr("data-y")},"b");
+				var graph = generateLine({x: data.current.x, y: data.current.y},{x: $(this).attr("data-x"), y: $(this).attr("data-y")},data.now);
 				var start = "url("+graph.first+")";
 				var end = "url("+graph.second+")";
 
@@ -103,23 +103,23 @@ $(document).ready(function(){
 				$( ".fieldPiece" ).unbind();
 				var newEnd = {x: parseInt($(this).attr('data-x')), y:parseInt($(this).attr('data-y'))};
 				var newLine = {
-					color: "b",
+					color: data.now,
 					start: data.current,
 					end: newEnd
 				};
-				data.current = newEnd;
-				data.path.push(newLine);
-				socket.emit('message', JSON.stringify(data));
+				var send = {
+					path: newLine,
+					token: $('#token').text()
+				};
+				socket.emit('message', send);
 			}
-
-			for(var i= -1; i<= 1; i++)
-				for(var j= -1; j<= 1; j++){
-					if(i !=0 || j !=0){
-						$(attrString((data.current.x+i),(data.current.y+j))).hover(addLineHover,removeLineHover);
-						$(attrString((data.current.x+i),(data.current.y+j))).click(lineClick);
-						$(attrString((data.current.x+i),(data.current.y+j)) + " div").addClass('move');
-					}
-				}
+			//--Iterakcja 'właściwa'--------------------------------
+			if(data.user ==  $("#usr_id").text())
+				$.each(data.moves,function(i,el){
+					$(attrString(el.x,el.y)).hover(addLineHover,removeLineHover);
+					$(attrString(el.x,el.y)).click(lineClick);
+					$(attrString(el.x,el.y) + " div").addClass('move');
+				});	
 			//----Rysowanie ścieżki----------------
 			$.each(data.path,function(i,line){
 				
@@ -152,17 +152,27 @@ $(document).ready(function(){
 		$('#start').click(function(e){
 			socket = io.connect('http://' + location.host);
 			socket.on('connect', function () {
-	            console.log('Nawiązano połączenie przez Socket.io');
 	            $('#start').attr('disabled','disabled');
-	            socket.emit('message', "start");
+	            socket.emit('message', {start: true, name: $("#name").val()});
         	});
+
+			//getToken
+        	socket.on("token", function (data) {
+        		var tokenBox ="<div class='invisible'>";
+        		tokenBox += "<div id='token'>" + data.token + "</div>";
+        		tokenBox += "<div id='usr_id'>" + data.id + "</div>";
+        		tokenBox += "<div id='usr_name'>" + data.name + "</div>";
+        		tokenBox += "</div>";
+
+        		$('body').append(tokenBox);
+        	});
+
         	socket.on('disconnect', function () {
            		$('#start').removeAttr('disabled');
         	});
         	//otrzymalem wiadomość
         	socket.on("echo", function (data) {
-        		var dane = JSON.parse(data);
-        		drawField(dane);
+        		drawField(data);
         	});
 
 		});

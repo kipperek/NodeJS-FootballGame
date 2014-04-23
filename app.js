@@ -7,7 +7,7 @@ var less = require('less-middleware');
 var app = express();
 http = http.createServer(app);
 var socketio = require("socket.io");
-var io = socketio.listen(http);
+var io = socketio.listen(http, { log: false });
 //
 
 app.configure(function () {
@@ -37,9 +37,10 @@ app.configure(function () {
 });
 
 app.configure('development', function () {
-    app.use(express.logger('dev'));
+   app.use(express.logger('dev'));
     app.use(express.errorHandler());
 });
+
 //Routes
 app.get('/', routes.index);
 
@@ -48,4 +49,4 @@ http.listen(app.get('port'), function () {
     console.log("Serwer nasłuchuje na porcie " + app.get('port'));
 });
 
-var s = require("./models/sockets.js").setSocket(io);;
+var s = require("./models/sockets.js").setSocket(io);
