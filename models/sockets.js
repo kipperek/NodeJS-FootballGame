@@ -14,11 +14,6 @@ function removeDisconnected(arr,token){
     return deleted;
 }
 
-function arrDel(arr,toDel){
-    for(var i=0;i < toDel.length;i++)
-        arr.splice(toDel[i],1);
-}
-
 function generateToken(){
      return Math.random().toString(36).substr(2); 
 }
@@ -27,7 +22,6 @@ function generateID(tab1,tab2){
     var id = 0;
     var t1 = 0;
     var t2 = 0;
-
 
     if(tab1.length > 0)
         t1 = tab1[tab1.length-1].id;
@@ -51,6 +45,14 @@ function createMoves(current){
     return moves;
 }
 
+function comparePath(current, move, start, end){
+    if((current.x == start.x && current.y == start.y && move.x == end.x && move.y == end.y)
+        || (current.x == end.x && current.y == end.y && move.x == start.x && move.y == start.y))
+        return true;
+    else
+        return false;
+}
+
 function generateMoves(current, data){
     var moves = createMoves(current);
     
@@ -59,40 +61,57 @@ function generateMoves(current, data){
         var toDel = [];
         for(var i=0; i< moves.length;i++){
             if(moves[i].x == current.x)
-                toDel.push(i);
+                moves[i].forbidden = true;
         }
-        arrDel(moves,toDel);
     }
     //jesteśmy na środku
     if(current.y == 10){
         var toDel = [];
         for(var i=0; i< moves.length;i++){
             if(moves[i].y == current.y)
-                toDel.push(i);
+                moves[i].forbidden = true;
         }
-        arrDel(moves,toDel);
+    }
+    //czy ścieżka już nie była wykożystana ;)
+    if(data != undefined){
+        for(var i=0; i< data.length; i++)
+            for(var j=0; j < moves.length;j++)
+                if(comparePath(current,moves[j],data[i].start,data[i].end))
+                    moves[j].forbidden = true;
     }
     
     return moves;
 }
 
+function checkIfCanMoveMore(current, path){
+
+    return false;
+}
+
 //----Tutaj dzieje się magia - > server zarządza odebranym obiektem i zarządza grą --------------
 function gameEngine(data, red, blue, req){
 
-    if(data.now == "b")
-        data.now = "r";
-    else
-        data.now = "b";
+     //----dodaj ścieżke
+    data.path.push(req.path);
+    //----zmień punkt teraźniejszy
+    data.current = req.path.end;
+    //----ustaw możliwe ruchy
+    data.moves = generateMoves(data.current,data.path);
 
+    //nie zmieniaj druzyny jesli mozna ruszyc jeszcze raz
+    if(!checkIfCanMoveMore(data.current,data.path)){
+        //----odpowiednia drużyna ma teraz kolej
+        if(data.now == "b")
+            data.now = "r";
+        else
+            data.now = "b";
+    }
+
+    //----odpowiednia osoba ma teraz kolej
     if(data.now == "b" && blue.length > 0)
         data.user = blue[0].id;
     else if(data.now == "r" && red.length > 0)
         data.user = red[0].id;
-
-    //dodaj ścieżke
-    data.path.push(req.path);
-    data.current = req.path.end;
-    data.moves = generateMoves(data.current);
 
     return data;
 }

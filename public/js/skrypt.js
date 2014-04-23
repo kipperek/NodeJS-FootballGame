@@ -116,9 +116,11 @@ $(document).ready(function(){
 			//--Iterakcja 'właściwa'--------------------------------
 			if(data.user ==  $("#usr_id").text())
 				$.each(data.moves,function(i,el){
-					$(attrString(el.x,el.y)).hover(addLineHover,removeLineHover);
-					$(attrString(el.x,el.y)).click(lineClick);
-					$(attrString(el.x,el.y) + " div").addClass('move');
+					if(!el.forbidden){
+						$(attrString(el.x,el.y)).hover(addLineHover,removeLineHover);
+						$(attrString(el.x,el.y)).click(lineClick);
+						$(attrString(el.x,el.y) + " div").addClass('move');
+					}
 				});	
 			//----Rysowanie ścieżki----------------
 			$.each(data.path,function(i,line){
