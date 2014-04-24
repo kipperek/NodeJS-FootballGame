@@ -114,7 +114,7 @@ $(document).ready(function(){
 				socket.emit('message', send);
 			}
 			//--Iterakcja 'właściwa'--------------------------------
-			if(data.user ==  $("#usr_id").text())
+			if(data.user ==  $("#usr_id").text() && !data.win)
 				$.each(data.moves,function(i,el){
 					if(!el.forbidden){
 						$(attrString(el.x,el.y)).hover(addLineHover,removeLineHover);
@@ -168,13 +168,33 @@ $(document).ready(function(){
 
         		$('body').append(tokenBox);
         	});
+        	//set teams
+        	socket.on('teams', function (data) {
+        		var redTeam = "Red Team:<ul>";
+        		var blueTeam = "Blue Team:<ul>";
+        		$.each(data.red,function(i, el){
+        			redTeam += "<li>"+el+"</li>";
+        		});
+        		$.each(data.blue,function(i,el){
+        			blueTeam += "<li>"+el+"</li>";
+        		});
+        		$('#redTeam').html(redTeam + "</ul>");
+        		$('#blueTeam').html(blueTeam + "</ul>");
+        	});
 
         	socket.on('disconnect', function () {
            		$('#start').removeAttr('disabled');
         	});
-        	//otrzymalem wiadomość
+        	//get game message
         	socket.on("echo", function (data) {
         		drawField(data);
+        		console.log(data.win);
+        		if(data.win == "b")
+        			$('#msg').text("Blue team wins!");
+        		else if(data.win == "r")
+        			$('#msg').text("Red team wins!");
+        		else if(data.win == "rb")
+        			$('#msg').text("Draw!!");
         	});
 
 		});

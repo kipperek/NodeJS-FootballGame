@@ -1,3 +1,17 @@
+function getNames(red,blue){
+    var rTeam = [];
+    var bTeam = [];
+
+    for(var i=0; i < red.length; i++)
+        rTeam.push(red[i].name);
+
+    for(var i=0; i < blue.length; i++)
+        bTeam.push(blue[i].name);
+
+    return {red: rTeam, blue: bTeam};
+}
+
+
 function removeDisconnected(arr,token){
     var deleted = false;
     var index = 0;
@@ -84,6 +98,15 @@ function generateMoves(current, data){
 }
 
 function checkIfCanMoveMore(current, path){
+    if(current.x == 14 || current.x == 0 || current.y == 10 || current.y == 0 || current.y == 20)
+        return true;
+    
+    for(var i=0; i< path.length;i++){
+        if(current.x == path[i].start.x && current.y == path[i].start.y)
+            return true;
+    }
+
+
 
     return false;
 }
@@ -97,6 +120,14 @@ function gameEngine(data, red, blue, req){
     data.current = req.path.end;
     //----ustaw możliwe ruchy
     data.moves = generateMoves(data.current,data.path);
+
+    //KTOS WYGRAŁ?
+    if(data.current.x >= 6 && data.current.x <= 8){
+        if(data.current.y == 0)
+            data.win = "b";
+        else if(data.current.y == 20)
+            data.win = "r";
+    }
 
     //nie zmieniaj druzyny jesli mozna ruszyc jeszcze raz
     if(!checkIfCanMoveMore(data.current,data.path)){
@@ -119,11 +150,8 @@ function gameEngine(data, red, blue, req){
 
 
 function setSocket(io){
-
     var redTeam = [];
     var blueTeam = [];
-    var nowUser = {};
-    //socket 
     var dane = {
             user: "1",
             now: "b",
@@ -140,15 +168,19 @@ function setSocket(io){
                     var usr = {name: data.name, id: generateID(redTeam,blueTeam), token: generateToken()};
                     var add = true;
                     if(blueTeam.length > 0){
-                        if(redTeam.length == 0)
+                        if(redTeam.length == 0){
                             redTeam.push(usr);
+                            io.sockets.emit("teams",getNames(redTeam,blueTeam));
+                        }
                         else{
                             socket.disconnect();
                             add = false;
                         }
                     }
-                    else
+                    else{
                         blueTeam.push(usr);
+                        io.sockets.emit("teams",getNames(redTeam,blueTeam));
+                    }
 
                     //wyslij token i zapisz do disconnecta
                     socket.emit("token",usr);
@@ -157,8 +189,8 @@ function setSocket(io){
                     //debug 
                     console.log(blueTeam); console.log(redTeam);
                 //-----Jesli dane growe to rób
-                }else if(data.path != undefined){
-                    dane = gameEngine(dane, redTeam, blueTeam, data);
+                }else if(data.path != undefined && !data.win){
+                        dane = gameEngine(dane, redTeam, blueTeam, data);
                 }
 
            
@@ -179,6 +211,8 @@ function setSocket(io){
                     //usun wylogowana osobe z druzyny
                     if(!removeDisconnected(redTeam,token))
                         removeDisconnected(blueTeam,token);
+
+                    io.sockets.emit("teams",getNames(redTeam,blueTeam));
                 });
                     
             });
