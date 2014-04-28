@@ -3,10 +3,10 @@ function getNames(red,blue){
     var bTeam = [];
 
     for(var i=0; i < red.length; i++)
-        rTeam.push(red[i].name);
+        rTeam.push({name: red[i].name, id: red[i].id});
 
     for(var i=0; i < blue.length; i++)
-        bTeam.push(blue[i].name);
+        bTeam.push({name: blue[i].name, id: blue[i].id});
 
     return {red: rTeam, blue: bTeam};
 }
@@ -146,10 +146,10 @@ function findToken(id, red, blue){
 
 function hakierCheck(current, moves, expectedToken, req){
     //czy odpowiednia osoba wyslala request
-    if(req.token != expectedToken)
+    if(req.token != expectedToken|| !req.path)
         return false;
 
-    //czy ruch jest taki jak być powinien i nie jest zabroniony 
+    //czy ruch jest taki jak być powinien i nie jest zabroniony `
     if(req.path.start.x != current.x || req.path.start.y != current.y)
         return false;
 
@@ -219,19 +219,17 @@ function setSocket(io){
                 if(data.start){
                    //START CLICKED
                     var usr = {name: data.name, id: generateID(redTeam,blueTeam), token: generateToken()};
-                    var add = true;
-                    if(blueTeam.length > 0){
-                        if(redTeam.length == 0){
-                            redTeam.push(usr);
-                            io.sockets.emit("teams",getNames(redTeam,blueTeam));
-                        }
-                        else{
-                            socket.disconnect();
-                            add = false;
-                        }
+                   
+                    if(blueTeam.length > redTeam.length){
+                        redTeam.push(usr);
+                         if(dane.now == "r")
+                            dane.user = redTeam[0].id;
+                        io.sockets.emit("teams",getNames(redTeam,blueTeam));
                     }
                     else{
                         blueTeam.push(usr);
+                        if(dane.now == "b")
+                            dane.user = blueTeam[0].id;
                         io.sockets.emit("teams",getNames(redTeam,blueTeam));
                     }
 

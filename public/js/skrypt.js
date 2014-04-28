@@ -1,5 +1,51 @@
 "use strict";
 $(document).ready(function(){
+//--------------MODALE--------------------------------------------------------
+	var logIn = "<input type='text' id='name' placeholder='Your name'/><button id='start'>START!</button>";
+	var waiting = "Waiting for opponent...<div class='loading'></div>";
+	var modalText = "";
+
+	var top = ($(document).height() / 2) - ($('#modal').height() / 2)- 100;
+	var left = ($(document).width() / 2) - ($('#modal').width() / 2);
+	
+	var lastUsr = 0;
+
+	$(window).resize(function(){
+
+		top = ($(window).height() / 2) - ($('#modal').height() / 2)- 100;
+		left = ($(window).width() / 2) - ($('#modal').width() / 2);
+		
+		$('#mask').css('width',$(window).width()).css('height',$(window).height());
+		$('#modal').css('top', top).css('left', left);
+	});
+
+	function exitModal(){
+		if($('#modal').css('display') != "none" || $('#mask').css('display') != "none"){
+			$('#mask').fadeOut(300);
+			$('#modal').animate({'top': top-50, 'opacity': 0},300,function(){$('#modal').hide();});
+		}
+	}
+
+
+	function showModal(){
+		$('#mask').css('width',$(document).width()).css('height',$(document).height()).fadeIn(450);
+		$('#modal').html("<div id='modalInput'>"+modalText+"</div>").css('top', top-50).css('left', left).css('opacity', 0);
+		$('#modal').show();
+		var margin_top = ($('#modal').height() - $('#modalInput').height()) / 2;
+		$('#modalInput').css('margin-top', margin_top);
+		$('#modal').animate({'top': top, 'opacity': 1},450);
+	}
+
+	function manageModal(text){
+		modalText = text;
+		if($('#modal').css('display') != "none")
+			$('#modal').animate({'top': top-50, 'opacity': 0},300,showModal);
+		else
+			showModal();
+		
+	}
+	
+	manageModal(logIn);
 
 //-------Rysowanie Gry--------------------------------------------------
 	//Sprawdzamy jakie linie rysowac w polu
@@ -170,16 +216,19 @@ $(document).ready(function(){
         	});
         	//set teams
         	socket.on('teams', function (data) {
-        		var redTeam = "Red Team:<ul>";
-        		var blueTeam = "Blue Team:<ul>";
+        		if(data.blue.length == 0 || data.red.length == 0)
+        			manageModal(waiting);
+
+        		var redTeam = "";
+        		var blueTeam = "";
         		$.each(data.red,function(i, el){
-        			redTeam += "<li>"+el+"</li>";
+        			redTeam += "<div class='teamName'>"+el.name+"<div class='redArrow' id='arrow"+el.id+"'></div></div>";
         		});
         		$.each(data.blue,function(i,el){
-        			blueTeam += "<li>"+el+"</li>";
+        			blueTeam += "<div class='teamName'>"+el.name+"<div class='blueArrow' id='arrow"+el.id+"'></div></div>";
         		});
-        		$('#redTeam').html(redTeam + "</ul>");
-        		$('#blueTeam').html(blueTeam + "</ul>");
+        		$('#rteam').html(redTeam);
+        		$('#bteam').html(blueTeam);
         	});
 
         	socket.on('disconnect', function () {
@@ -187,15 +236,21 @@ $(document).ready(function(){
         	});
         	//get game message
         	socket.on("echo", function (data) {
-        		drawField(data);
-        		console.log(data.win);
-        		if(data.win == "b")
-        			$('#msg').text("Blue team wins!");
-        		else if(data.win == "r")
-        			$('#msg').text("Red team wins!");
-        		else if(data.win == "rb")
-        			$('#msg').text("Draw!!");
-        	});
+        		var showArrow = function(){
+        			$("#arrow"+data.user).fadeIn(400);
+        			lastUsr = data.user;
+        		}
+        		if(lastUsr != data.user)
+        			$(".redArrow, .blueArrow").fadeOut(400,showArrow);
 
+        		exitModal();
+        		drawField(data);
+        		if(data.win == "b")
+        			manageModal("<div class='blueWin'>Blue Team WINS!</div><button id='restart'>RESTART</button>");
+        		else if(data.win == "r")
+        			manageModal("<div class='redWin'>Red Team WINS!</div><button id='restart'>RESTART</button>");
+        		else if(data.win == "rb")
+        			manageModal("<div class='draw'>DRAW!</div><button id='restart'>RESTART</button>");
+        	});
 		});
 });
