@@ -202,6 +202,28 @@ function gameEngine(data, red, blue, req){
     return data;
 }
 
+function generateMessage(data){
+    var msg = {
+        user: "",
+        now: "",
+        moves: [],
+        current: {},
+        path: []
+    };
+    msg.user = data.user;
+    msg.now = data.now;
+    msg.moves = data.moves;
+    msg.current = data.current;
+    if(data.win){
+        msg.win = data.win;
+    }
+
+    if(data.path.length > 0)
+        msg.path.push(data.path[data.path.length-1]);
+
+    return msg;
+}
+
 function setSocket(io){
     var redTeam = [];
     var blueTeam = [];
@@ -214,6 +236,7 @@ function setSocket(io){
         }
 
     io.sockets.on("connection", function (socket) {
+        console.log("CONNECTION");
         socket.on("message", function (data) {
                //---Jesli start---------------------------
                 if(data.start){
@@ -236,18 +259,18 @@ function setSocket(io){
                     //wyslij token i zapisz do disconnecta
                     socket.emit("token",usr);
                     socket.set("token", usr.token);
+                    var newData = dane;
+                    newData.connect = true;
+                    socket.emit('echo',newData);
 
-                    //debug 
-                    console.log(blueTeam); console.log(redTeam);
                 //-----Jesli dane growe to rób
-                }else if(data.path != undefined && !data.win){
+                }else if(data.path != undefined && !dane.win){
                         dane = gameEngine(dane, redTeam, blueTeam, data);
                 }
 
-           
             //Wyslij wiadomość z gra jesli 2 druzyny gotowe
             if(blueTeam.length > 0 && redTeam.length > 0){
-                io.sockets.emit("echo",dane);
+                io.sockets.emit("echo",generateMessage(dane));
             }
 
            

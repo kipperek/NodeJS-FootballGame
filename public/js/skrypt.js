@@ -47,7 +47,7 @@ $(document).ready(function(){
 	
 	manageModal(logIn);
 
-//-------Rysowanie Gry--------------------------------------------------
+//-------GRA--------------------------------------------------
 	//Sprawdzamy jakie linie rysowac w polu
 	function generateLine(startPoint, endPoint, color){
 			var start =".png";
@@ -88,39 +88,49 @@ $(document).ready(function(){
 				second: "/img/"+ end
 			}
 		}
+		//złóż stringa dla jquery
+		var attrString = function(x,y){
+			return "div[data-x="+x+"][data-y="+y+"]";
+		}
+
+	
 
 		//Rysowanie prawidłowe----------------------
 		//------------------------------------------
 		function drawField(data){
+			//globals""
 			var el = $("#gameField");
 			var fieldY = 21;
 			var fieldX = 15;
 			var hoverCurrent = "none";
 			var hoverTarget = "none";
+			//----Rysowanie pola po raz pierwszy
+			function generateField(){
+				var fieldHTML= "";
+				for(var i =0; i < fieldY; i++){
+					fieldHTML+="<div class='fieldWrap'>";
+					for(var j=0; j < fieldX; j++){
 
-			//----Rysowanie pola-------------------
-			var fieldHTML= "";
-			for(var i =0; i < fieldY; i++){
-				fieldHTML+="<div class='fieldWrap'>";
-				for(var j=0; j < fieldX; j++){
+						var currentClass = "";
+						if(data.current.x == j && data.current.y == i)
+							currentClass = 'current';
 
-					var currentClass = "";
-					if(data.current.x == j && data.current.y == i)
-						currentClass = 'current';
-
-					fieldHTML += "<div class='fieldPiece' data-x='"+j+"' data-y='"+i+"'><div class='dot "+currentClass+"'></div></div>";
+						fieldHTML += "<div class='fieldPiece' data-x='"+j+"' data-y='"+i+"'><div class='dot "+currentClass+"'></div></div>";
+					}
+					fieldHTML += "</div>";
 				}
-				fieldHTML += "</div>";
+
+				el.html(fieldHTML);
 			}
 
-			el.html(fieldHTML);
+			function modifyField(){
+				$(".dot").removeClass("current");
+				$(attrString(data.current.x,data.current.y) + " div").addClass("current");
 
-			//----Interakcja ;)--------------------
-			//złóż stringa dla jquery
-			var attrString = function(x,y){
-				return "div[data-x="+x+"][data-y="+y+"]";
+
 			}
 
+			//hover gdy najezdzamy na mozliwy ruch
 			var addLineHover = function(e){
 				var graph = generateLine({x: data.current.x, y: data.current.y},{x: $(this).attr("data-x"), y: $(this).attr("data-y")},data.now);
 				var start = "url("+graph.first+")";
@@ -138,15 +148,21 @@ $(document).ready(function(){
 
 				$(this).css('background-image',end);
 				$(attrString(data.current.x,data.current.y)).css('background-image',start);
+				
 			}
 
+			//i jego usuwanie
 			var removeLineHover = function(e){
 				$(this).css('background-image',hoverTarget);
 				$(attrString(data.current.x,data.current.y)).css('background-image',hoverCurrent);
+				
 			}
 
+			//klikniecie gdy nasza kolej-----
 			var lineClick = function(e){
 				$( ".fieldPiece" ).unbind();
+				$(".dot").removeClass("current").removeClass("move");
+
 				var newEnd = {x: parseInt($(this).attr('data-x')), y:parseInt($(this).attr('data-y'))};
 				var newLine = {
 					color: data.now,
@@ -159,6 +175,13 @@ $(document).ready(function(){
 				};
 				socket.emit('message', send);
 			}
+			///////////////---------------------------------DZIAŁANIE FUNKCJI RYSOWANIA---------------------------------------------------------
+			//Rysuj poraz pierwszy pole
+			if(data.path.length == 0 || data.connect)
+				generateField();
+			else
+				modifyField();
+
 			//--Iterakcja 'właściwa'--------------------------------
 			if(data.user ==  $("#usr_id").text() && !data.win)
 				$.each(data.moves,function(i,el){
@@ -193,19 +216,19 @@ $(document).ready(function(){
 		}
 		//----------------------------------------------------------------------------
 
-		//drawField(data1);
-
 		//--------------------------------Start---------------------------------------
 		var socket;
 		$('#start').click(function(e){
 			socket = io.connect('http://' + location.host);
 			socket.on('connect', function () {
 	            $('#start').attr('disabled','disabled');
-	            socket.emit('message', {start: true, name: $("#name").val()});
+	            if($('#token').text() == "")
+	            	socket.emit('message', {start: true, name: $("#name").val()});
         	});
 
 			//getToken
         	socket.on("token", function (data) {
+        		$(".invisible").remove();
         		var tokenBox ="<div class='invisible'>";
         		tokenBox += "<div id='token'>" + data.token + "</div>";
         		tokenBox += "<div id='usr_id'>" + data.id + "</div>";
@@ -233,8 +256,10 @@ $(document).ready(function(){
 
         	socket.on('disconnect', function () {
            		$('#start').removeAttr('disabled');
+           		$(".invisible").remove();
         	});
         	//get game message
+
         	socket.on("echo", function (data) {
         		var showArrow = function(){
         			$("#arrow"+data.user).fadeIn(400);
@@ -242,8 +267,10 @@ $(document).ready(function(){
         		}
         		if(lastUsr != data.user)
         			$(".redArrow, .blueArrow").fadeOut(400,showArrow);
+        		if(!data.connect)
+        			exitModal();
 
-        		exitModal();
+        		$('div').unbind();
         		drawField(data);
         		if(data.win == "b")
         			manageModal("<div class='blueWin'>Blue Team WINS!</div><button id='restart'>RESTART</button>");
