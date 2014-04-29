@@ -224,19 +224,22 @@ function generateMessage(data){
     return msg;
 }
 
-function setSocket(io){
-    var redTeam = [];
-    var blueTeam = [];
-    var dane = {
+function newGame(){
+    return {
             user: "1",
             now: "b",
             moves: generateMoves({x: 7, y:10}),
             current: {x: 7, y:10},
             path:[]
-        }
+        };
+}
+
+function setSocket(io){
+    var redTeam = [];
+    var blueTeam = [];
+    var dane = newGame();
 
     io.sockets.on("connection", function (socket) {
-        console.log("CONNECTION");
         socket.on("message", function (data) {
                //---Jesli start---------------------------
                 if(data.start){
@@ -273,8 +276,6 @@ function setSocket(io){
                 io.sockets.emit("echo",generateMessage(dane));
             }
 
-           
-           
         });
         socket.on("error", function (err) {
             console.dir(err);

@@ -4,7 +4,6 @@ $(document).ready(function(){
 	var logIn = "<input type='text' id='name' placeholder='Your name'/><button id='start'>START!</button>";
 	var waiting = "Waiting for opponent...<div class='loading'></div>";
 	var modalText = "";
-
 	var top = ($(document).height() / 2) - ($('#modal').height() / 2)- 100;
 	var left = ($(document).width() / 2) - ($('#modal').width() / 2);
 	
@@ -104,6 +103,7 @@ $(document).ready(function(){
 			var fieldX = 15;
 			var hoverCurrent = "none";
 			var hoverTarget = "none";
+			var hoverON = false;
 			//----Rysowanie pola po raz pierwszy
 			function generateField(){
 				var fieldHTML= "";
@@ -132,6 +132,7 @@ $(document).ready(function(){
 
 			//hover gdy najezdzamy na mozliwy ruch
 			var addLineHover = function(e){
+				hoverON = true;
 				var graph = generateLine({x: data.current.x, y: data.current.y},{x: $(this).attr("data-x"), y: $(this).attr("data-y")},data.now);
 				var start = "url("+graph.first+")";
 				var end = "url("+graph.second+")";
@@ -153,9 +154,11 @@ $(document).ready(function(){
 
 			//i jego usuwanie
 			var removeLineHover = function(e){
-				$(this).css('background-image',hoverTarget);
-				$(attrString(data.current.x,data.current.y)).css('background-image',hoverCurrent);
-				
+				if(hoverON){
+					hoverON = false;
+					$(this).css('background-image',hoverTarget);
+					$(attrString(data.current.x,data.current.y)).css('background-image',hoverCurrent);
+				}
 			}
 
 			//klikniecie gdy nasza kolej-----
@@ -183,7 +186,7 @@ $(document).ready(function(){
 				modifyField();
 
 			//--Iterakcja 'właściwa'--------------------------------
-			if(data.user ==  $("#usr_id").text() && !data.win)
+			if(data.user ==  $("#usr_id").text() && !data.win && !data.connect)
 				$.each(data.moves,function(i,el){
 					if(!el.forbidden){
 						$(attrString(el.x,el.y)).hover(addLineHover,removeLineHover);
@@ -256,7 +259,6 @@ $(document).ready(function(){
 
         	socket.on('disconnect', function () {
            		$('#start').removeAttr('disabled');
-           		$(".invisible").remove();
         	});
         	//get game message
 
@@ -265,7 +267,7 @@ $(document).ready(function(){
         			$("#arrow"+data.user).fadeIn(400);
         			lastUsr = data.user;
         		}
-        		if(lastUsr != data.user)
+        		if(lastUsr != data.user && !data.connect)
         			$(".redArrow, .blueArrow").fadeOut(400,showArrow);
         		if(!data.connect)
         			exitModal();
