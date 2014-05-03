@@ -1,4 +1,4 @@
-function getNames(red,blue){
+function getNames(red,blue,data){
     var rTeam = [];
     var bTeam = [];
 
@@ -8,10 +8,10 @@ function getNames(red,blue){
     for(var i=0; i < blue.length; i++)
         bTeam.push({name: blue[i].name, id: blue[i].id});
 
-    return {red: rTeam, blue: bTeam};
+    return {red: rTeam, blue: bTeam, id: data.user};
 }
 
-function removeDisconnected(arr,token){
+function removeDisconnected(arr,token, id){
     var deleted = false;
     var index = 0;
     for(var i =0; i < arr.length; i++){
@@ -250,18 +250,19 @@ function setSocket(io){
                         redTeam.push(usr);
                          if(dane.now == "r")
                             dane.user = redTeam[0].id;
-                        io.sockets.emit("teams",getNames(redTeam,blueTeam));
+                        io.sockets.emit("teams",getNames(redTeam,blueTeam,dane));
                     }
                     else{
                         blueTeam.push(usr);
                         if(dane.now == "b")
                             dane.user = blueTeam[0].id;
-                        io.sockets.emit("teams",getNames(redTeam,blueTeam));
+                        io.sockets.emit("teams",getNames(redTeam,blueTeam,dane));
                     }
 
                     //wyslij token i zapisz do disconnecta
                     socket.emit("token",usr);
                     socket.set("token", usr.token);
+                    socket.set("name", usr.name);
                     var newData = dane;
                     newData.connect = true;
                     socket.emit('echo',newData);
@@ -277,6 +278,14 @@ function setSocket(io){
             }
 
         });
+        socket.on("restart", function (data) {
+            if(dane.win){
+                dane = newGame();
+                if(blueTeam.length > 0 && redTeam.length > 0){
+                    io.sockets.emit("echo",generateMessage(dane));
+                }
+            }
+        });
         socket.on("error", function (err) {
             console.dir(err);
         });
@@ -284,10 +293,10 @@ function setSocket(io){
         socket.on('disconnect', function (){
                 socket.get("token",function(err,token){
                     //usun wylogowana osobe z druzyny
-                    if(!removeDisconnected(redTeam,token))
-                        removeDisconnected(blueTeam,token);
+                    if(!removeDisconnected(redTeam,token, dane.user))
+                        removeDisconnected(blueTeam,token, dane.user);
 
-                    io.sockets.emit("teams",getNames(redTeam,blueTeam));
+                    io.sockets.emit("teams",getNames(redTeam,blueTeam, dane));
                 });
                     
             });

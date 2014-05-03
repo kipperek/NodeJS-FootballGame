@@ -1,7 +1,7 @@
 "use strict";
 $(document).ready(function(){
 //--------------MODALE--------------------------------------------------------
-	var logIn = "<input type='text' id='name' placeholder='Your name'/><button id='start'>START!</button>";
+	var logIn = "<form id='start'><input type='text' id='name' placeholder='Your name' autofocus='autofocus' required='required' maxlength='20'/><button type='submit' id='startBtn'>START!</button></form>";
 	var waiting = "Waiting for opponent...<div class='loading'></div>";
 	var modalText = "";
 	var top = ($(document).height() / 2) - ($('#modal').height() / 2)- 100;
@@ -94,8 +94,8 @@ $(document).ready(function(){
 
 	
 
-		//Rysowanie prawidłowe----------------------
-		//------------------------------------------
+		//-------Rysowanie prawidłowe----------------------
+		//-------------------------------------------------
 		function drawField(data){
 			//globals""
 			var el = $("#gameField");
@@ -130,7 +130,7 @@ $(document).ready(function(){
 
 			}
 
-			//hover gdy najezdzamy na mozliwy ruch
+			//-----------hover gdy najezdzamy na mozliwy ruch------------------------
 			var addLineHover = function(e){
 				hoverON = true;
 				var graph = generateLine({x: data.current.x, y: data.current.y},{x: $(this).attr("data-x"), y: $(this).attr("data-y")},data.now);
@@ -221,15 +221,16 @@ $(document).ready(function(){
 
 		//--------------------------------Start---------------------------------------
 		var socket;
-		$('#start').click(function(e){
+		$('#start').submit(function(e){
+			e.preventDefault();
 			socket = io.connect('http://' + location.host);
 			socket.on('connect', function () {
-	            $('#start').attr('disabled','disabled');
+	            $('#startBtn').attr('disabled','disabled');
 	            if($('#token').text() == "")
 	            	socket.emit('message', {start: true, name: $("#name").val()});
         	});
 
-			//getToken
+			//----getToken-------------------------------------
         	socket.on("token", function (data) {
         		$(".invisible").remove();
         		var tokenBox ="<div class='invisible'>";
@@ -240,7 +241,7 @@ $(document).ready(function(){
 
         		$('body').append(tokenBox);
         	});
-        	//set teams
+        	//----set teams----------------------------------
         	socket.on('teams', function (data) {
         		if(data.blue.length == 0 || data.red.length == 0)
         			manageModal(waiting);
@@ -255,13 +256,16 @@ $(document).ready(function(){
         		});
         		$('#rteam').html(redTeam);
         		$('#bteam').html(blueTeam);
+
+        		$("#arrow"+data.id).fadeIn(400);
+        		lastUsr = data.id;
         	});
 
         	socket.on('disconnect', function () {
-           		$('#start').removeAttr('disabled');
+           		$('#startBtn').removeAttr('disabled');
         	});
-        	//get game message
 
+        	//----get game message-------------------------
         	socket.on("echo", function (data) {
         		var showArrow = function(){
         			$("#arrow"+data.user).fadeIn(400);
@@ -280,6 +284,12 @@ $(document).ready(function(){
         			manageModal("<div class='redWin'>Red Team WINS!</div><button id='restart'>RESTART</button>");
         		else if(data.win == "rb")
         			manageModal("<div class='draw'>DRAW!</div><button id='restart'>RESTART</button>");
+
+        		//----RESTART------------------------------------
+				$('#restart').click(function(){
+					socket.emit('restart'," ");
+				});
+
         	});
 		});
 });

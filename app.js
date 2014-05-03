@@ -20,6 +20,7 @@ app.configure(function () {
     app.use(express.cookieParser('bardzo tajne aqq'));
     app.use(express.session());
     app.use(app.router);
+    app.use(express.favicon(path.join(__dirname, 'public/img/favicon.ico')));
     // „middleware” obsługujące LESS-a
     // samo kompiluje pliki less-owe do CSS
     // a do tego pliki wynikowe kompresuje

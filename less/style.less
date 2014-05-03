@@ -1,3 +1,6 @@
+@red: #ff5050;
+@blue: #00ccff;
+
 @font-face{
 font-family: Ubuntu;
 src: url(/font/Ubuntu.otf);
@@ -53,6 +56,9 @@ body{
 	left: 550px;
 	z-index: 10;
 	text-align: left;
+	hr{
+		background: @red;
+	}
 }
 
 #blueTeam{
@@ -62,6 +68,9 @@ body{
 	right: 550px;
 	z-index: 10;
 	text-align: right;
+	hr{
+		background: @blue;
+	}
 }
 
 hr{
@@ -157,32 +166,36 @@ hr{
 	width: 300px;
 	vertical-align: middle;
 	text-align: center;
+
+	input[type=text]{
+		border-radius: 5px;
+		border: 1px solid grey;
+		outline: none;
+		font-family: Ubuntu;
+		width: 200px;
+		height: 25px;
+		font-size: 18px;
+		text-align: center;
+		padding: 0;
+		margin: 5px;
+	}
+
+	button{
+		outline: none;
+		font-family: Ubuntu;
+		font-size: 18px;
+		background: #00ccff;
+		border: none;
+		border-radius: 10px;
+		width: 150px;
+		height:30px;
+
+		&:hover{
+			background: #ff5050;
+		}
+	}
 }
-#modal input[type=text]{
-	border-radius: 5px;
-	border: 1px solid grey;
-	outline: none;
-	font-family: Ubuntu;
-	width: 200px;
-	height: 25px;
-	font-size: 18px;
-	text-align: center;
-	padding: 0;
-	margin: 5px;
-}
-#modal button{
-	outline: none;
-	font-family: Ubuntu;
-	font-size: 18px;
-	background: #00ccff;
-	border: none;
-	border-radius: 10px;
-	width: 150px;
-	height:30px;
-}
-#modal button:hover{
-	background: #ff5050;
-}
+
 #modal img{
 	margin: 5px;
 }
@@ -192,11 +205,11 @@ hr{
 }
 .blueWin{
 	.win;
-	color: #00ccff;
+	color: @blue;
 }
 .redWin{
 	.win;
-	color: #ff5050;
+	color: @red;
 }
 .draw{
 	.win;
