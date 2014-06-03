@@ -6,9 +6,17 @@
     "start": "node app"
   },
   "dependencies": {
+    "connect": "^2.14.5",
     "express": "3.x",
     "less-middleware": "0.1.x",
     "ejs": "*",
-    "socket.io": "0.9.x"
+    "socket.io": "0.9.x",
+    "passport": "^0.2.0",
+    "passport-local": "^1.0.0",
+    "passport.socketio": "^3.0.1",
+    "mongodb": "*"
+  },
+  "engines" : {
+    "node": "0.10.x"
   }
 }

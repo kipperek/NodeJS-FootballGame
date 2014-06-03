@@ -234,57 +234,113 @@ function newGame(){
         };
 }
 
+function findData(data, id){
+    for(var i=0; i< data.length;i++){
+        if(data[i].id == id)
+            return data[i];
+    }
+
+    return null;
+}
+function setNew(data,id){
+     for(var i=0; i< data.length;i++){
+        if(data[i].id == id)
+            data[i].data = newGame();
+    }
+}
+
 function setSocket(io){
-    var redTeam = [];
-    var blueTeam = [];
-    var dane = newGame();
+   // var redTeam = [];
+   // var blueTeam = [];
+    var rooms = [{id: 0, name: "Global", redTeam: [], blueTeam: [], blocked: false }];
+    var roomsPass = [];
+    var dane = [{id: 0, data: newGame() }];
 
     io.sockets.on("connection", function (socket) {
-        socket.on("message", function (data) {
-               //---Jesli start---------------------------
-                if(data.start){
-                   //START CLICKED
-                    var usr = {name: data.name, id: generateID(redTeam,blueTeam), token: generateToken()};
-                   
-                    if(blueTeam.length > redTeam.length){
-                        redTeam.push(usr);
-                         if(dane.now == "r")
-                            dane.user = redTeam[0].id;
-                        io.sockets.emit("teams",getNames(redTeam,blueTeam,dane));
-                    }
-                    else{
-                        blueTeam.push(usr);
-                        if(dane.now == "b")
-                            dane.user = blueTeam[0].id;
-                        io.sockets.emit("teams",getNames(redTeam,blueTeam,dane));
-                    }
+        socket.emit('newLobbies',{"rooms": rooms });
 
-                    //wyslij token i zapisz do disconnecta
-                    socket.emit("token",usr);
-                    socket.set("token", usr.token);
-                    socket.set("name", usr.name);
-                    var newData = dane;
-                    newData.connect = true;
-                    socket.emit('echo',newData);
+        socket.on("createRoom", function (data) {
+            var newId = rooms[rooms.length -1].id + 1;
+            rooms.push({id: newId, name: data.name, redTeam: [], blueTeam: [], blocked: data.blocked });
+            if(data.blocked)
+                roomsPass.push({id: newId, pass: data.pass });
 
-                //-----Jesli dane growe to rób
-                }else if(data.path != undefined && !dane.win){
-                        dane = gameEngine(dane, redTeam, blueTeam, data);
+            dane.push({id: newId, data: newGame() });
+           
+            io.sockets.emit('newLobbies',{"rooms": rooms });
+            
+
+        });
+
+        socket.on("joingame",function (data){
+            
+            var pass = findData(roomsPass, data.id);
+            //jezeli hasło sie zgadza to dodaj mnie do rumu
+            if(pass == null){
+                var room = findData(rooms,data.id);
+                var gameData = findData(dane, data.id).data;
+                var usr = {name: data.name, id: generateID(room.redTeam,room.blueTeam), token: generateToken()};
+                socket.join(room.id);
+                
+                if(room.blueTeam.length > room.redTeam.length){
+                    room.redTeam.push(usr);
+                     if(gameData.now == "r")
+                        gameData.user = room.redTeam[0].id;
                 }
+                else{
+                    room.blueTeam.push(usr);
+                    if(gameData.now == "b")
+                        gameData.user = room.blueTeam[0].id;
+                }
+                io.sockets.in(room.id).emit("teams",getNames(room.redTeam,room.blueTeam,gameData));
+                io.sockets.emit('newLobbies',{"rooms": rooms });
 
-            //Wyslij wiadomość z gra jesli 2 druzyny gotowe
-            if(blueTeam.length > 0 && redTeam.length > 0){
-                io.sockets.emit("echo",generateMessage(dane));
+                
+                //wyslij token i zapisz do disconnecta
+                socket.emit("token",usr);
+                socket.set("token", usr.token);
+                socket.set("name", usr.name);
+                socket.set("roomId", data.id);
+
+                var newData = gameData;
+                newData.connect = true;
+                socket.emit('echo',newData);
+                io.sockets.in(room.id).emit("echo",generateMessage(gameData));
             }
 
         });
-        socket.on("restart", function (data) {
-            if(dane.win){
-                dane = newGame();
-                if(blueTeam.length > 0 && redTeam.length > 0){
-                    io.sockets.emit("echo",generateMessage(dane));
+
+        socket.on("message", function (data) {
+            socket.get("roomId",function(err,roomId){
+                var gameData = findData(dane, roomId).data;
+                var room = findData(rooms, roomId);
+            
+
+               if(gameData.path != undefined && !gameData.win){
+                        gameData = gameEngine(gameData, room.redTeam, room.blueTeam, data);
                 }
-            }
+
+                //Wyslij wiadomość z gra jesli 2 druzyny gotowe
+                if(room.blueTeam.length > 0 && room.redTeam.length > 0){
+                    io.sockets.in(room.id).emit("echo",generateMessage(gameData));
+                }
+            });
+        });
+
+        socket.on("restart", function (data) {
+            socket.get("roomId",function(err,roomId){
+                var room = findData(rooms, roomId);
+                var gameData = findData(dane, roomId).data;
+               
+                if(gameData.win){
+                    gameData = newGame();
+                    setNew(dane,room.id);
+                    
+                    if(room.blueTeam.length > 0 && room.redTeam.length > 0){
+                       io.sockets.in(room.id).emit("echo",generateMessage(gameData));
+                    }
+                }
+            });
         });
         socket.on("error", function (err) {
             console.dir(err);
@@ -292,11 +348,17 @@ function setSocket(io){
 
         socket.on('disconnect', function (){
                 socket.get("token",function(err,token){
-                    //usun wylogowana osobe z druzyny
-                    if(!removeDisconnected(redTeam,token, dane.user))
-                        removeDisconnected(blueTeam,token, dane.user);
+                    socket.get("roomId",function(err,roomId){
+                         var room = findData(rooms, roomId);
+                          var gameData = findData(dane, roomId).data;
+                        //usun wylogowana osobe z druzyny
+                        if(!removeDisconnected(room.redTeam,token, gameData.user))
+                            removeDisconnected(room.blueTeam,token, gameData.user);
 
-                    io.sockets.emit("teams",getNames(redTeam,blueTeam, dane));
+                        io.sockets.in(room.id).emit("teams",getNames(room.redTeam,room.blueTeam, gameData));
+                        io.sockets.emit('newLobbies',{"rooms": rooms });
+                        io.sockets.in(room.id).emit("echo",generateMessage(gameData));
+                    });
                 });
                     
             });

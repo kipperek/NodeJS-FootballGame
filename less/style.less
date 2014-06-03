@@ -34,7 +34,6 @@ body{
 	background: url(/img/red_arrow.png);
 }
 
-
 .nonSelect{
 	-webkit-touch-callout: none;
 	-webkit-user-select: none;
@@ -167,17 +166,23 @@ hr{
 	vertical-align: middle;
 	text-align: center;
 
-	input[type=text]{
+	input[type=text],input[type=password]{
 		border-radius: 5px;
 		border: 1px solid grey;
 		outline: none;
 		font-family: Ubuntu;
-		width: 200px;
+		width: 180px;
 		height: 25px;
 		font-size: 18px;
-		text-align: center;
-		padding: 0;
+		padding: 0 10px 0 10px;
 		margin: 5px;
+	}
+	table{
+		margin: 0 auto 0 auto;
+	}
+
+	table td{
+		text-align: left;
 	}
 
 	button{
@@ -189,15 +194,67 @@ hr{
 		border-radius: 10px;
 		width: 150px;
 		height:30px;
+		margin-bottom: 10px;
 
 		&:hover{
 			background: #ff5050;
 		}
 	}
-}
+	img{
+		margin: 5px;
+	}
+	.modalSpan{
+		margin-top:50px;
+		font-size: 14px;
+	}
+	.green{
+		color: green;
+	}
+	.red{
+		color: red;
+	}
+	#lobby{
+		width: 100%;
+		height: 360px;
+		margin-top: 20px;
+		overflow-y: auto;
+		margin-top: 20px;
 
-#modal img{
-	margin: 5px;
+		table{
+			width: 95%;
+			border-collapse: collapse;
+		}
+
+		table tr{
+			border-top: 1px solid #DDD;
+		}
+		
+		.lock{
+			width: 40px;
+			height: 40px;
+			background-repeat: no-repeat;
+			background-position: center;
+			vertical-align: bottom;
+		}
+		.blocked{
+			background-image: url(/img/lock.png);
+		}
+
+		button{
+			width: 60px;
+			height: 25px;
+			font-size: 14px;
+			vertical-align: middle;
+			margin:0px;
+		}
+	}
+	#lobbyLinks{
+		margin: 5px;
+		a{
+			font-size: 14px;
+		}
+	}
+
 }
 .win{
 	font-size: 24px;
