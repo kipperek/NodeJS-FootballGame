@@ -11,11 +11,15 @@ function getNames(red,blue,data){
     return {red: rTeam, blue: bTeam, id: data.user};
 }
 
-function removeDisconnected(arr,token, id){
+function removeDisconnected(arr,token,data){
     var deleted = false;
+    var thisUsr = false;
     var index = 0;
     for(var i =0; i < arr.length; i++){
         if(arr[i].token == token){
+            if(data.user == arr[i].id)
+               thisUsr = true;
+
             index = i;
             deleted = true;
             break;
@@ -23,6 +27,13 @@ function removeDisconnected(arr,token, id){
     }
     if(deleted)
         arr.splice(index, 1);
+
+    if(thisUsr){
+        if(index < arr.length)
+            data.user =arr[index].id;
+        else if(arr.length>0)
+            data.user = arr[index-1].id;
+    }
 
     return deleted;
 }
@@ -193,10 +204,23 @@ function gameEngine(data, red, blue, req){
         }
 
         //----odpowiednia osoba ma teraz kolej
-        if(data.now == "b" && blue.length > 0)
-            data.user = blue[0].id;
-        else if(data.now == "r" && red.length > 0)
-            data.user = red[0].id;
+        if(data.now == "b" && blue.length > 0){
+
+            if(data.lastB + 1 >= blue.length)
+                data.lastB = 0;
+            else
+                data.lastB += 1;
+
+            data.user = blue[data.lastB].id;
+        }
+        else if(data.now == "r" && red.length > 0){
+            if(data.lastR + 1 >= red.length)
+                data.lastR = 0;
+            else
+                data.lastR += 1;
+
+            data.user = red[data.lastR].id;
+        }
     }
 
     return data;
@@ -208,7 +232,8 @@ function generateMessage(data){
         now: "",
         moves: [],
         current: {},
-        path: []
+        path: [],
+       
     };
     msg.user = data.user;
     msg.now = data.now;
@@ -230,7 +255,9 @@ function newGame(){
             now: "b",
             moves: generateMoves({x: 7, y:10}),
             current: {x: 7, y:10},
-            path:[]
+            path:[],
+            lastB: 0,
+            lastR: 0
         };
 }
 
@@ -276,7 +303,11 @@ function setSocket(io){
             
             var pass = findData(roomsPass, data.id);
             //jezeli hasło sie zgadza to dodaj mnie do rumu
-            if(pass == null){
+            if(pass === null || pass.pass == data.pass){
+
+                if(pass)
+                    socket.emit('join',{ok: true});
+
                 var room = findData(rooms,data.id);
                 var gameData = findData(dane, data.id).data;
                 var usr = {name: data.name, id: generateID(room.redTeam,room.blueTeam), token: generateToken()};
@@ -306,6 +337,8 @@ function setSocket(io){
                 newData.connect = true;
                 socket.emit('echo',newData);
                 io.sockets.in(room.id).emit("echo",generateMessage(gameData));
+            }else{
+                socket.emit('join',{ok: false});
             }
 
         });
@@ -346,22 +379,27 @@ function setSocket(io){
             console.dir(err);
         });
 
-        socket.on('disconnect', function (){
-                socket.get("token",function(err,token){
-                    socket.get("roomId",function(err,roomId){
-                         var room = findData(rooms, roomId);
-                          var gameData = findData(dane, roomId).data;
-                        //usun wylogowana osobe z druzyny
-                        if(!removeDisconnected(room.redTeam,token, gameData.user))
-                            removeDisconnected(room.blueTeam,token, gameData.user);
+        function leaveRoom(){
+           socket.get("token",function(err,token){
+                socket.get("roomId",function(err,roomId){
+                  if(roomId && token){
+                        var room = findData(rooms, roomId);
+                        var gameData = findData(dane, roomId).data;
+
+                        if(!removeDisconnected(room.redTeam,token, gameData))
+                            removeDisconnected(room.blueTeam,token, gameData);
 
                         io.sockets.in(room.id).emit("teams",getNames(room.redTeam,room.blueTeam, gameData));
-                        io.sockets.emit('newLobbies',{"rooms": rooms });
                         io.sockets.in(room.id).emit("echo",generateMessage(gameData));
-                    });
+                        io.sockets.emit('newLobbies',{"rooms": rooms });
+                    }
                 });
-                    
             });
+        }
+
+        socket.on('disconnect', function (){
+             leaveRoom();       
+        });
     });
 
 }

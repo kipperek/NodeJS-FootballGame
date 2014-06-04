@@ -152,4 +152,4 @@ io.set('authorization', passportSocketIo.authorize({
     fail: onAuthorizeFail
 }));
 //I DO MODELU
-var s = require("./models/sockets.js").setSocket(io);
+require("./models/sockets.js").setSocket(io);

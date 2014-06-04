@@ -19,6 +19,10 @@ $(document).ready(function(){
 		+"</td></tr><tr><td>Password:</td><td><input type='password' id='password' required='required' disabled/></td></tr>"
 		+"</table><button type='submit' id='startBtn'>Create room</button></form>"
 		+"<span class='modalSpan'>Go <a id='backLobby' href='#'>back</a> to lobby.</span>";
+
+	var roomPassword = "<form id='enterForm'><table><tr><td>Password:</td><td><input type='password' id='password' required='required'/></td></tr>"
+		+"</table><button type='submit' id='startBtn'>Join</button></form>"
+		+"<span class='modalSpan'>Go <a id='backLobby' href='#'>back</a> to lobby.</span>";
 	
 	var loggedAs = null;
 	var modalText = "";
@@ -27,7 +31,7 @@ $(document).ready(function(){
 	var w,h;
 	var rooms = [];
 	var socket;
-	
+	var set=false;
 	var lastUsr = 0;
 	//gdy okno zmieni rozmiar dopasuj modala
 	$(window).resize(function(){
@@ -67,7 +71,7 @@ $(document).ready(function(){
 
 	//pokaz / chowaj modala
 	function manageModal(text,wi,he){
-		if(wi & he){
+		if(wi && he){
 			w = wi;
 			h = he;
 		}else{
@@ -159,6 +163,34 @@ $(document).ready(function(){
 
 	}
 
+	var showPassword = function(id,msg){
+		if(!msg)
+			msg = "";
+		manageModal(msg+roomPassword,330,150);
+		setTimeout(function(){
+			$('#backLobby').click(showLobby);
+			$('#enterForm').submit(function(e){
+				e.preventDefault();
+				exitModal();
+				if(!set){
+					set=true;
+					socket.on("join", function (data) {
+						if(data.ok){
+							startGame();
+						}
+						else{
+							showPassword(id,"<div>Invalid password</div>");
+						}
+					});
+				}
+
+				setTimeout(function(){
+					socket.emit('joingame',{"name": loggedAs, "id": id, pass: $('#password').val() });
+				},400);
+			});
+		},400);
+	}
+
 	var setRooms = function(){
 		var lob = $("#lobby");
 		var table ="<table class='lobTable'>";
@@ -177,10 +209,12 @@ $(document).ready(function(){
 		$('.joinBtn').click(function(e){
 			var id = $(this).attr('id');
 			var room = findRoom(id);
-			//if(room.blocked)
-
-			socket.emit('joingame',{"name": loggedAs, "id": id });
-			startGame();
+			if(room.blocked)
+				showPassword(id);
+			else{
+				socket.emit('joingame',{"name": loggedAs, "id": id });
+				startGame();
+			}
 		});
 	}
 
@@ -276,15 +310,12 @@ $(document).ready(function(){
 	}
 	
 	var showWin = function(msg){
-		manageModal(msg + "<div><a href='#' id='goLobby'>Go back</a> to lobby</div>");
+		manageModal(msg);
 		setTimeout(function(){
-			$('#restart').unbind('click').click(function(){
+			$('body').on('click', '#restart', function (e) {
 				socket.emit('restart'," ");
 				exitModal();
 			});
-			$('#goLobby').click(function(e){
-				e.preventDefault();
-			});	
 			
 		},400);
 	}
@@ -516,7 +547,6 @@ $(document).ready(function(){
 
         	//----get game message-------------------------
         	socket.on("echo", function (data) {
-        	
         		var showArrow = function(){
         			$("#arrow"+data.user).fadeIn(400);
         			lastUsr = data.user;
@@ -533,87 +563,13 @@ $(document).ready(function(){
         		else if(data.win == "r")
         			showWin("<div class='redWin'>Red Team WINS!</div><button id='restart'>RESTART</button>");
         		else if(data.win == "rb")
-        			manageModal("<div class='draw'>DRAW!</div><button id='restart'>RESTART</button>");		
+        			showWin("<div class='draw'>DRAW!</div><button id='restart'>RESTART</button>");		
 				
         	});
 
 
 		}
 		
-		/*
-		
-		$('#start').submit(function(e){
-			e.preventDefault();
-			socket = io.connect('http://' + location.host);
-			socket.on('connect', function () {
-	            $('#startBtn').attr('disabled','disabled');
-	            if($('#token').text() == "")
-	            	socket.emit('message', {start: true, name: $("#name").val()});
-        	});
-
-			//----getToken-------------------------------------
-        	socket.on("token", function (data) {
-        		$(".invisible").remove();
-        		var tokenBox ="<div class='invisible'>";
-        		tokenBox += "<div id='token'>" + data.token + "</div>";
-        		tokenBox += "<div id='usr_id'>" + data.id + "</div>";
-        		tokenBox += "<div id='usr_name'>" + data.name + "</div>";
-        		tokenBox += "</div>";
-
-        		$('body').append(tokenBox);
-        	});
-        	//----set teams----------------------------------
-        	socket.on('teams', function (data) {
-        		if(data.blue.length == 0 || data.red.length == 0)
-        			manageModal(waiting);
-
-        		var redTeam = "";
-        		var blueTeam = "";
-        		$.each(data.red,function(i, el){
-        			redTeam += "<div class='teamName'>"+el.name+"<div class='redArrow' id='arrow"+el.id+"'></div></div>";
-        		});
-        		$.each(data.blue,function(i,el){
-        			blueTeam += "<div class='teamName'>"+el.name+"<div class='blueArrow' id='arrow"+el.id+"'></div></div>";
-        		});
-        		$('#rteam').html(redTeam);
-        		$('#bteam').html(blueTeam);
-
-        		$("#arrow"+data.id).fadeIn(400);
-        		lastUsr = data.id;
-        	});
-
-        	socket.on('disconnect', function () {
-           		$('#startBtn').removeAttr('disabled');
-        	});
-
-        	//----get game message-------------------------
-        	socket.on("echo", function (data) {
-        		var showArrow = function(){
-        			$("#arrow"+data.user).fadeIn(400);
-        			lastUsr = data.user;
-        		}
-        		if(lastUsr != data.user && !data.connect)
-        			$(".redArrow, .blueArrow").fadeOut(400,showArrow);
-        		if(!data.connect)
-        			exitModal();
-
-        		$('div').unbind();
-        		drawField(data);
-        		if(data.win == "b")
-        			manageModal("<div class='blueWin'>Blue Team WINS!</div><button id='restart'>RESTART</button>");
-        		else if(data.win == "r")
-        			manageModal("<div class='redWin'>Red Team WINS!</div><button id='restart'>RESTART</button>");
-        		else if(data.win == "rb")
-        			manageModal("<div class='draw'>DRAW!</div><button id='restart'>RESTART</button>");
-
-        		//----RESTART------------------------------------
-				$('#restart').click(function(){
-					socket.emit('restart'," ");
-				});
-
-        	});
-		});//KONIEC STARTU GRY
-		*/
 
 	//ZRÓB GDY ZAŁADOWANO
 	clickBackToLogin();
