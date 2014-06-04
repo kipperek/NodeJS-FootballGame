@@ -1,28 +1,27 @@
-"use strict";
 $(document).ready(function(){
 //--------------MODALE--------------------------------------------------------
-	var logIn = "<form id='loginForm'><table><tr><td>Username:</td><td><input type='text' id='username' required='required' maxlength='20' pattern='[\\w]{3,}' title='3-20 characters, only a-z, A-Z and 1-9'/>"
-		+"</td></tr><tr><td>Password:</td><td><input type='password' id='password' required='required' pattern='[\\w]{3,}' title='Min 3 characters, only a-z, A-Z and 1-9'/></td></tr></table><button type='submit' id='startBtn'>Log in</button></form>"
-		+"<span class='modalSpan'><a id='registerA' href='#'>Register</a> if you don't have an account.</span>";
+	var logIn = "<form id='loginForm'><table><tr><td>Username:</td><td><input type='text' id='username' required='required' maxlength='20' pattern='[\\w]{3,}' title='3-20 characters, only a-z, A-Z and 1-9'/>"+
+		"</td></tr><tr><td>Password:</td><td><input type='password' id='password' required='required' pattern='[\\w]{3,}' title='Min 3 characters, only a-z, A-Z and 1-9'/></td></tr></table><button type='submit' id='startBtn'>Log in</button></form>"+
+		"<span class='modalSpan'><a id='registerA' href='#'>Register</a> if you don't have an account.</span>";
 
 	var waiting = "Waiting for opponent...<div class='loading'></div>";
 	var pleaseWait = "Loading please wait...<div class='loading'></div>";
 
-	var register = "<form id='registerForm'><table><tr><td>Username:</td><td><input type='text' id='username' required='required' maxlength='20' pattern='[\\w]{3,}' title='3-20 characters, only a-z, A-Z and 1-9'/>"
-		+"</td></tr><tr><td>Password:</td><td><input type='password' id='password' required='required'/></td></tr>"
-		+"<tr><td>Re-type<br/>password:</td><td><input type='password' id='password2' required='required' pattern='[\\w]{3,}' title='Min 3 characters, only a-z, A-Z and 1-9'/></td></tr></table><button type='submit' id='startBtn'>Register</button></form>"
-		+"<span class='modalSpan'>Go <a id='backA' href='#'>back</a> to log in form.</span>";
+	var register = "<form id='registerForm'><table><tr><td>Username:</td><td><input type='text' id='username' required='required' maxlength='20' pattern='[\\w]{3,}' title='3-20 characters, only a-z, A-Z and 1-9'/>"+
+		"</td></tr><tr><td>Password:</td><td><input type='password' id='password' required='required'/></td></tr>"+
+		"<tr><td>Re-type<br/>password:</td><td><input type='password' id='password2' required='required' pattern='[\\w]{3,}' title='Min 3 characters, only a-z, A-Z and 1-9'/></td></tr></table><button type='submit' id='startBtn'>Register</button></form>"+
+		"<span class='modalSpan'>Go <a id='backA' href='#'>back</a> to log in form.</span>";
 
 
-	var roomCreation = "<form id='roomForm'><table><tr><td>Room name:</td><td><input type='text' id='roomname' required='required' maxlength='20' pattern='[\\w]{3,}' title='3-20 characters, only a-z, A-Z and 1-9'/>"
-		+"</td></tr><tr><td>Enable<br/>password?:</td><td><input type='checkbox' id='enablepass'/></td></tr>"
-		+"</td></tr><tr><td>Password:</td><td><input type='password' id='password' required='required' disabled/></td></tr>"
-		+"</table><button type='submit' id='startBtn'>Create room</button></form>"
-		+"<span class='modalSpan'>Go <a id='backLobby' href='#'>back</a> to lobby.</span>";
+	var roomCreation = "<form id='roomForm'><table><tr><td>Room name:</td><td><input type='text' id='roomname' required='required' maxlength='20' pattern='[\\w]{3,}' title='3-20 characters, only a-z, A-Z and 1-9'/>"+
+		"</td></tr><tr><td>Enable<br/>password?:</td><td><input type='checkbox' id='enablepass'/></td></tr>"+
+		"</td></tr><tr><td>Password:</td><td><input type='password' id='password' required='required' disabled/></td></tr>"+
+		"</table><button type='submit' id='startBtn'>Create room</button></form>"+
+		"<span class='modalSpan'>Go <a id='backLobby' href='#'>back</a> to lobby.</span>";
 
-	var roomPassword = "<form id='enterForm'><table><tr><td>Password:</td><td><input type='password' id='password' required='required'/></td></tr>"
-		+"</table><button type='submit' id='startBtn'>Join</button></form>"
-		+"<span class='modalSpan'>Go <a id='backLobby' href='#'>back</a> to lobby.</span>";
+	var roomPassword = "<form id='enterForm'><table><tr><td>Password:</td><td><input type='password' id='password' required='required'/></td></tr>"+
+		"</table><button type='submit' id='startBtn'>Join</button></form>"+
+		"<span class='modalSpan'>Go <a id='backLobby' href='#'>back</a> to lobby.</span>";
 	
 	var loggedAs = null;
 	var modalText = "";
@@ -142,7 +141,7 @@ $(document).ready(function(){
 		socket.emit('createRoom',{"name": name, "blocked": isPass, "pass": pass});
 		showLobby();
 
-	}
+	};
 
 
 
@@ -161,7 +160,7 @@ $(document).ready(function(){
 			
 		},400);
 
-	}
+	};
 
 	var showPassword = function(id,msg){
 		if(!msg)
@@ -189,7 +188,7 @@ $(document).ready(function(){
 				},400);
 			});
 		},400);
-	}
+	};
 
 	var setRooms = function(){
 		var lob = $("#lobby");
@@ -216,7 +215,7 @@ $(document).ready(function(){
 				startGame();
 			}
 		});
-	}
+	};
 
 
 	//SHOW LOBBY
@@ -224,7 +223,7 @@ $(document).ready(function(){
 		if(e)
 			e.preventDefault();
 
-		var mg = "<span class='modalSpan'>Welcome <b> "+loggedAs+" </b></span><div id='lobbyLinks'><a href='#' id='createRoom'>Create room</a><br/><a href='/logout'>Log out</a></div><div id='lobby'></div>"
+		var mg = "<span class='modalSpan'>Welcome <b> "+loggedAs+" </b></span><div id='lobbyLinks'><a href='#' id='createRoom'>Create room</a><br/><a href='/logout'>Log out</a></div><div id='lobby'></div>";
 		manageModal(mg,330,480);
 		setTimeout(function(){
 			setRooms();
@@ -232,13 +231,13 @@ $(document).ready(function(){
 			
 			
 		},400);
-	}
+	};
 
 
 	//FORMULARZ REJERSTRACJI WYPEŁNIONY
 	var sendRegister = function(e){
 		e.preventDefault();
-		var username = $('#username').val();;
+		var username = $('#username').val();
 		var pass = $('#password').val();
 		var retype = $('#password2').val();
 		//pokaz czekanie
@@ -256,25 +255,25 @@ $(document).ready(function(){
 					type: "GET",
 					url: "/register/"+username+"/pass/"+pass
 				}).done(function(data) {
-				  if(data.done){
+				if(data.done){
 					clickBackToLogin(false,"<span class='modalSpan green'>"+data.msg+"</span>",330,198);
-				  }else{
-				  	clickRegister(false,"<span class='modalSpan red'>"+data.msg+"</span>",330,220);
-				  }
+				}else{
+					clickRegister(false,"<span class='modalSpan red'>"+data.msg+"</span>",330,220);
+				}
 				})
 				.fail(function() {
-				  clickRegister(false,"<span class='modalSpan red'>An error occured, try again</span>",330,220);
+					clickRegister(false,"<span class='modalSpan red'>An error occured, try again</span>",330,220);
 				});
 			}
 		},1000);
-	}
+	};
 
 
 
 	//FORMULARZ LOGOWANIA WYPEŁNIONY
 	var sendLogin = function(e){
 		e.preventDefault();
-		var username = $('#username').val();;
+		var username = $('#username').val();
 		var pass = $('#password').val();
 		//oczekiwanie
 		manageModal(pleaseWait);
@@ -284,20 +283,20 @@ $(document).ready(function(){
 					type: "POST",
 					url: "/login?username="+username+"&password="+pass
 				}).done(function(data) {
-				  if(data.done){
-				  	loggedAs = data.username;
+				if(data.done){
+						loggedAs = data.username;
 					showLobby(false);
 					connectToSocket();
-				  }else{
-				  	clickBackToLogin(false,"<span class='modalSpan red'>"+data.msg+"</span>",330,175);
-				  }
+					}else{
+						clickBackToLogin(false,"<span class='modalSpan red'>"+data.msg+"</span>",330,175);
+					}
 				})
 				.fail(function() {
 					clickBackToLogin(false,"<span class='modalSpan red'>Invalid username or password</span>",330,175);
 				});
 		},1000);
 
-	}
+	};
 
 	var findRoom = function(id){
 		var room = null;
@@ -307,8 +306,8 @@ $(document).ready(function(){
 		});
 
 		return room;
-	}
-	
+	};
+
 	var showWin = function(msg){
 		manageModal(msg);
 		setTimeout(function(){
@@ -318,7 +317,7 @@ $(document).ready(function(){
 			});
 			
 		},400);
-	}
+	};
 	
 //-------GRA--------------------------------------------------
 	//Sprawdzamy jakie linie rysowac w polu
@@ -359,12 +358,12 @@ $(document).ready(function(){
 			return {
 				first: "/img/" +start,
 				second: "/img/"+ end
-			}
+			};
 		}
 		//złóż stringa dla jquery
 		var attrString = function(x,y){
 			return "div[data-x="+x+"][data-y="+y+"]";
-		}
+		};
 
 	
 
@@ -424,7 +423,7 @@ $(document).ready(function(){
 				$(this).css('background-image',end);
 				$(attrString(data.current.x,data.current.y)).css('background-image',start);
 				
-			}
+			};
 
 			//i jego usuwanie
 			var removeLineHover = function(e){
@@ -433,7 +432,7 @@ $(document).ready(function(){
 					$(this).css('background-image',hoverTarget);
 					$(attrString(data.current.x,data.current.y)).css('background-image',hoverCurrent);
 				}
-			}
+			};
 
 			//klikniecie gdy nasza kolej-----
 			var lineClick = function(e){
@@ -451,10 +450,10 @@ $(document).ready(function(){
 					token: $('#token').text()
 				};
 				socket.emit('message', send);
-			}
+			};
 			///////////////---------------------------------DZIAŁANIE FUNKCJI RYSOWANIA---------------------------------------------------------
 			//Rysuj poraz pierwszy pole
-			if(data.path.length == 0 || data.connect)
+			if(data.path.length === 0 || data.connect)
 				generateField();
 			else
 				modifyField();
@@ -501,76 +500,72 @@ $(document).ready(function(){
 			
 			socket.on('connect', function () {
 				socket.on('newLobbies',function (data) {
-        			rooms = data.rooms;
-        			setRooms();
-        		});
+					rooms = data.rooms;
+					setRooms();
+				});
 
-	            // $('#startBtn').attr('disabled','disabled');
-	            // if($('#token').text() == "")
-	            // 	socket.emit('message', {start: true, name: $("#name").val()});
-        	});
+			});
 
-		}
+		};
 		var startGame = function(){
 			exitModal();
 			socket.on("token", function (data) {
-        		$(".invisible").remove();
-        		var tokenBox ="<div class='invisible'>";
-        		tokenBox += "<div id='token'>" + data.token + "</div>";
-        		tokenBox += "<div id='usr_id'>" + data.id + "</div>";
-        		tokenBox += "<div id='usr_name'>" + data.name + "</div>";
-        		tokenBox += "</div>";
+				$(".invisible").remove();
+				var tokenBox ="<div class='invisible'>";
+				tokenBox += "<div id='token'>" + data.token + "</div>";
+				tokenBox += "<div id='usr_id'>" + data.id + "</div>";
+				tokenBox += "<div id='usr_name'>" + data.name + "</div>";
+				tokenBox += "</div>";
 
-        		$('body').append(tokenBox);
-        	});
+				$('body').append(tokenBox);
+			});
 
-        	socket.on('teams', function (data) {
-        		if(data.blue.length == 0 || data.red.length == 0)
-        			manageModal(waiting);
-        		else
-        			exitModal();
+			socket.on('teams', function (data) {
+				if(data.blue.length === 0 || data.red.length === 0)
+					manageModal(waiting);
+				else
+					exitModal();
 
-        		var redTeam = "";
-        		var blueTeam = "";
-        		$.each(data.red,function(i, el){
-        			redTeam += "<div class='teamName'>"+el.name+"<div class='redArrow' id='arrow"+el.id+"'></div></div>";
-        		});
-        		$.each(data.blue,function(i,el){
-        			blueTeam += "<div class='teamName'>"+el.name+"<div class='blueArrow' id='arrow"+el.id+"'></div></div>";
-        		});
-        		$('#rteam').html(redTeam);
-        		$('#bteam').html(blueTeam);
+				var redTeam = "";
+				var blueTeam = "";
+				$.each(data.red,function(i, el){
+					redTeam += "<div class='teamName'>"+el.name+"<div class='redArrow' id='arrow"+el.id+"'></div></div>";
+				});
+				$.each(data.blue,function(i,el){
+					blueTeam += "<div class='teamName'>"+el.name+"<div class='blueArrow' id='arrow"+el.id+"'></div></div>";
+				});
+				$('#rteam').html(redTeam);
+				$('#bteam').html(blueTeam);
 
-        		$("#arrow"+data.id).fadeIn(400);
-        		lastUsr = data.id;
-        	});
+				$("#arrow"+data.id).fadeIn(400);
+				lastUsr = data.id;
+			});
 
-        	//----get game message-------------------------
-        	socket.on("echo", function (data) {
-        		var showArrow = function(){
-        			$("#arrow"+data.user).fadeIn(400);
-        			lastUsr = data.user;
-        		}
-        		if(lastUsr != data.user && !data.connect)
-        			$(".redArrow, .blueArrow").fadeOut(400,showArrow);
-        		
-
-        		$('div').unbind();
-        		drawField(data);
-        		        		
-        		if(data.win == "b")
-        			showWin("<div class='blueWin'>Blue Team WINS!</div><button id='restart'>RESTART</button>");
-        		else if(data.win == "r")
-        			showWin("<div class='redWin'>Red Team WINS!</div><button id='restart'>RESTART</button>");
-        		else if(data.win == "rb")
-        			showWin("<div class='draw'>DRAW!</div><button id='restart'>RESTART</button>");		
+			//----get game message-------------------------
+			socket.on("echo", function (data) {
+				var showArrow = function(){
+					$("#arrow"+data.user).fadeIn(400);
+					lastUsr = data.user;
+				};
+				if(lastUsr != data.user && !data.connect)
+					$(".redArrow, .blueArrow").fadeOut(400,showArrow);
 				
-        	});
+
+				$('div').unbind();
+				drawField(data);
+				if(data.win == "b")
+					showWin("<div class='blueWin'>Blue Team WINS!</div><button id='restart'>RESTART</button>");
+				else if(data.win == "r")
+					showWin("<div class='redWin'>Red Team WINS!</div><button id='restart'>RESTART</button>");
+				else if(data.win == "rb")
+					showWin("<div class='draw'>DRAW!</div><button id='restart'>RESTART</button>");		
+				
+			});
 
 
-		}
-		
+		};
 
-	//ZRÓB GDY ZAŁADOWANO
-	clickBackToLogin();
-});//JQUERY END
+
+		//ZRÓB GDY ZAŁADOWANO
+		clickBackToLogin();
+		});//JQUERY END

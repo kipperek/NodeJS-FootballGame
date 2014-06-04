@@ -5,7 +5,7 @@ function getNames(red,blue,data){
     for(var i=0; i < red.length; i++)
         rTeam.push({name: red[i].name, id: red[i].id});
 
-    for(var i=0; i < blue.length; i++)
+    for(i=0; i < blue.length; i++)
         bTeam.push({name: blue[i].name, id: blue[i].id});
 
     return {red: rTeam, blue: bTeam, id: data.user};
@@ -62,7 +62,7 @@ function createMoves(current){
     var moves = [];
     for(var i=-1; i <= 1; i++)
         for(var j=-1; j <= 1; j++)
-            if(j!=0 || i!=0){
+            if(j!==0 || i!==0){
                 moves.push({ x: current.x + i, y: current.y + j });
             }
 
@@ -70,8 +70,7 @@ function createMoves(current){
 }
 
 function comparePath(current, move, start, end){
-    if((current.x == start.x && current.y == start.y && move.x == end.x && move.y == end.y)
-        || (current.x == end.x && current.y == end.y && move.x == start.x && move.y == start.y))
+    if((current.x == start.x && current.y == start.y && move.x == end.x && move.y == end.y) || (current.x == end.x && current.y == end.y && move.x == start.x && move.y == start.y))
         return true;
     else
         return false;
@@ -81,38 +80,38 @@ function comparePath(current, move, start, end){
 //-----------------------------------------
 function generateMoves(current, data){
     var moves = createMoves(current);
-    
+    var i=0;
     //jesteśmy przy ściankach
-    if(current.x == 0 || current.x == 14){
-        for(var i=0; i< moves.length;i++){
+    if(current.x === 0 || current.x == 14){
+        for(i=0; i< moves.length;i++){
             if(moves[i].x == current.x)
                 moves[i].forbidden = true;
         }
     }
     //jesteśmy na środku
     if(current.y == 10){
-        for(var i=0; i< moves.length;i++){
+        for(i=0; i< moves.length;i++){
             if(moves[i].y == current.y)
                 moves[i].forbidden = true;
         }
     }
     //jesteśmy u góry lub na dole i jeszcze ochrniaamy ze mozemy do bramki wrzucic
-    if(current.y == 0 || current.y == 20){
-        for(var i=0; i< moves.length;i++){
+    if(current.y === 0 || current.y == 20){
+        for(i=0; i< moves.length;i++){
             if(moves[i].y == current.y && (moves[i].x < 6 || moves[i].x > 8))
                 moves[i].forbidden = true;
         }
     }
 
     //czy ścieżka już nie była wykożystana ;)
-    if(data != undefined){
-        for(var i=0; i< data.length; i++)
+    if(data !== undefined){
+        for(i=0; i< data.length; i++)
             for(var j=0; j < moves.length;j++)
                 if(comparePath(current,moves[j],data[i].start,data[i].end))
                     moves[j].forbidden = true;
     }
 
-    for(var i=0; i< moves.length;i++){
+    for(i=0; i< moves.length;i++){
         if(moves[i].x < 0 || moves[i].x > 14 || moves[i].y < 0 || moves[i].y > 20)
             moves[i].forbidden = true;
     }
@@ -121,7 +120,7 @@ function generateMoves(current, data){
 }
 
 function checkIfCanMoveMore(current, path){
-    if(current.x == 14 || current.x == 0 || current.y == 10 || current.y == 0 || current.y == 20)
+    if(current.x == 14 || current.x === 0 || current.y == 10 || current.y === 0 || current.y == 20)
         return true;
     
     for(var i=0; i< path.length;i++){
@@ -148,7 +147,7 @@ function findToken(id, red, blue){
         if(red[i].id == id)
             return red[i].token;
 
-     for(var i=0; i< blue.length;i++)
+     for(i=0; i< blue.length;i++)
         if(blue[i].id == id)
             return blue[i].token;
 
@@ -185,7 +184,7 @@ function gameEngine(data, red, blue, req){
 
         //KTOS WYGRAŁ?
         if(data.current.x >= 6 && data.current.x <= 8){
-            if(data.current.y == 0)
+            if(data.current.y === 0)
                 data.win = "b";
             else if(data.current.y == 20)
                 data.win = "r";
@@ -349,7 +348,7 @@ function setSocket(io){
                 var room = findData(rooms, roomId);
             
 
-               if(gameData.path != undefined && !gameData.win){
+               if(gameData.path !== undefined && !gameData.win){
                         gameData = gameEngine(gameData, room.redTeam, room.blueTeam, data);
                 }
 
